@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bbidar Enterprise Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <h1>Bbidar</h1>
+        <p>Multi-tenant WhatsApp AI Suite</p>
+      </aside>
+      <main class="content">
+        <section class="card">
+          <h2>Tenant Connection</h2>
+          <div class="row">
+            <input id="tenantId" placeholder="tenant-acme" value="tenant-acme" />
+            <button id="connectBtn">Connect with QR</button>
+          </div>
+          <p id="sessionMeta" class="muted"></p>
+          <div class="qr-wrap" id="qrWrap" hidden>
+            <img id="qrImage" alt="WhatsApp QR" />
+          </div>
+          <p id="connectionHint" class="muted"></p>
+          <div class="row">
+            <button id="aiToggleBtn" disabled>Enable AI Mode (Gemini)</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Groups</h2>
+          <p id="groupsHint" class="muted">Groups will be loaded after WhatsApp is connected.</p>
+          <div id="groups" class="groups"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
