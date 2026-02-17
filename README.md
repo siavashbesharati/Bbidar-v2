@@ -21,8 +21,8 @@ Open `http://localhost:3000`.
 - `POST /api/tenants/:tenantId/sessions/connect`
 - `GET /api/tenants/:tenantId/sessions/:sessionId`
 - `PATCH /api/tenants/:tenantId/sessions/:sessionId/ai-mode`
-- `GET /api/tenants/:tenantId/groups`
-- `GET /api/tenants/:tenantId/groups/:groupId/members.csv`
+- `GET /api/tenants/:tenantId/groups?sessionId=<sessionId>`
+- `GET /api/tenants/:tenantId/groups/:groupId/members.csv?sessionId=<sessionId>`
 
 ## Enterprise roadmap recommendations
 1. Replace in-memory store with PostgreSQL + Redis.

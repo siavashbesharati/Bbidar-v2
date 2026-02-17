@@ -105,7 +105,7 @@ async function loadGroups() {
       <article class="group-card">
         <h3>${group.name}</h3>
         <p class="muted">${group.memberCount} members</p>
-        <a href="/api/tenants/${tenantId}/groups/${group.id}/members.csv">Download members CSV</a>
+        <a href="/api/tenants/${tenantId}/groups/${group.id}/members.csv?sessionId=${encodeURIComponent(currentSessionId)}">Download members CSV</a>
       </article>
     `
     )

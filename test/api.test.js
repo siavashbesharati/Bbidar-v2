@@ -23,13 +23,27 @@ test('connect + groups endpoints work after connected state', async () => {
   );
   assert.equal(blockedGroupsRes.status, 409);
 
+  const blockedCsvRes = await fetch(
+    `http://127.0.0.1:${port}/api/tenants/t1/groups/grp-sales/members.csv?sessionId=${encodeURIComponent(session.id)}`
+  );
+  assert.equal(blockedCsvRes.status, 409);
+
   store.updateSession('t1', session.id, { status: 'connected' });
 
-  const groupsRes = await fetch(`http://127.0.0.1:${port}/api/tenants/t1/groups?sessionId=${encodeURIComponent(session.id)}`);
+  const groupsRes = await fetch(
+    `http://127.0.0.1:${port}/api/tenants/t1/groups?sessionId=${encodeURIComponent(session.id)}`
+  );
   assert.equal(groupsRes.status, 200);
   const groups = await groupsRes.json();
   assert.ok(Array.isArray(groups));
   assert.ok(groups.length > 0);
+
+  const csvRes = await fetch(
+    `http://127.0.0.1:${port}/api/tenants/t1/groups/grp-sales/members.csv?sessionId=${encodeURIComponent(session.id)}`
+  );
+  assert.equal(csvRes.status, 200);
+  const csv = await csvRes.text();
+  assert.ok(csv.includes('name,phone'));
 
   server.close();
 });

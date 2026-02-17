@@ -86,8 +86,21 @@ app.get('/api/tenants/:tenantId/groups', (req, res) => {
 });
 
 app.get('/api/tenants/:tenantId/groups/:groupId/members.csv', (req, res) => {
-  const tenant = store.ensureTenant(req.params.tenantId);
-  const group = tenant.groups.find((item) => item.id === req.params.groupId);
+  const { tenantId, groupId } = req.params;
+  const { sessionId } = req.query;
+
+  if (!sessionId) {
+    return res.status(400).json({ message: 'sessionId is required to export group members' });
+  }
+
+  const session = store.getSession(tenantId, sessionId);
+  if (!session) return res.status(404).json({ message: 'Session not found' });
+  if (session.status !== 'connected') {
+    return res.status(409).json({ message: 'WhatsApp is not connected yet' });
+  }
+
+  const tenant = store.ensureTenant(tenantId);
+  const group = tenant.groups.find((item) => item.id === groupId);
 
   if (!group) return res.status(404).json({ message: 'Group not found' });
 
