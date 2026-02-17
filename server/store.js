@@ -37,8 +37,9 @@ function createSession(tenantId) {
   const tenant = ensureTenant(tenantId);
   const session = {
     id: crypto.randomUUID(),
-    status: 'pending_qr',
-    qr: `demo-qr-${Date.now()}`,
+    status: 'starting',
+    qr: null,
+    qrDataUrl: null,
     aiModeEnabled: false,
     aiProvider: 'gemini',
     createdAt: new Date().toISOString()

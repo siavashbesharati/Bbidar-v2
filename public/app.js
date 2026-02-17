@@ -12,30 +12,23 @@ let currentSessionId = null;
 let aiEnabled = false;
 let statusTimer = null;
 
-function qrUrlFromText(text) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(text)}`;
-}
-
 async function connectTenant() {
   const tenantId = tenantInput.value.trim();
   if (!tenantId) return;
 
   connectBtn.disabled = true;
+  aiToggleBtn.disabled = true;
   groupsBox.innerHTML = '';
   groupsHint.textContent = 'Waiting for WhatsApp connection before loading groups...';
+  connectionHint.textContent = 'Starting WhatsApp session...';
+  qrWrap.hidden = true;
 
   const res = await fetch(`/api/tenants/${tenantId}/sessions/connect`, { method: 'POST' });
   const session = await res.json();
 
   currentSessionId = session.id;
   sessionMeta.textContent = `Session: ${session.id} | Status: ${session.status}`;
-  connectionHint.textContent = 'Scan the QR code with WhatsApp to finish connection.';
-  aiToggleBtn.disabled = true;
-
-  if (session.qr) {
-    qrImage.src = qrUrlFromText(session.qr);
-    qrWrap.hidden = false;
-  }
+  connectionHint.textContent = 'Waiting for QR from WhatsApp...';
 
   startPollingSession();
 }
@@ -53,9 +46,10 @@ function startPollingSession() {
     const session = await res.json();
     sessionMeta.textContent = `Session: ${session.id} | Status: ${session.status}`;
 
-    if (session.qr) {
-      qrImage.src = qrUrlFromText(session.qr);
+    if (session.qrDataUrl) {
+      qrImage.src = session.qrDataUrl;
       qrWrap.hidden = false;
+      connectionHint.textContent = 'Scan this QR with WhatsApp on your phone.';
     }
 
     if (session.status === 'connected') {
@@ -66,6 +60,7 @@ function startPollingSession() {
       aiToggleBtn.disabled = false;
       connectBtn.disabled = false;
       await loadGroups();
+      return;
     }
 
     if (session.status === 'logged_out' || session.status === 'error') {
@@ -74,7 +69,7 @@ function startPollingSession() {
       connectionHint.textContent = `Connection stopped: ${session.status}`;
       connectBtn.disabled = false;
     }
-  }, 2000);
+  }, 1500);
 }
 
 async function toggleAiMode() {
@@ -94,9 +89,15 @@ async function toggleAiMode() {
 
 async function loadGroups() {
   const tenantId = tenantInput.value.trim();
-  const res = await fetch(`/api/tenants/${tenantId}/groups`);
-  const groups = await res.json();
+  const res = await fetch(`/api/tenants/${tenantId}/groups?sessionId=${encodeURIComponent(currentSessionId)}`);
 
+  if (!res.ok) {
+    groupsHint.textContent = 'Groups are available only after an active WhatsApp connection.';
+    groupsBox.innerHTML = '';
+    return;
+  }
+
+  const groups = await res.json();
   groupsHint.textContent = groups.length ? 'Connected groups:' : 'No groups found for this tenant yet.';
   groupsBox.innerHTML = groups
     .map(

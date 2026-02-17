@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const QRCode = require('qrcode');
 const store = require('./store');
 const whatsappManager = require('./whatsappManager');
 const aiService = require('./aiService');
@@ -18,8 +19,11 @@ app.post('/api/tenants/:tenantId/sessions/connect', async (req, res) => {
     await whatsappManager.createClient({
       tenantId,
       sessionId: session.id,
-      onQr: (qr) => store.updateSession(tenantId, session.id, { qr, status: 'pending_qr' }),
-      onOpen: () => store.updateSession(tenantId, session.id, { status: 'connected', qr: null }),
+      onQr: async (qr) => {
+        const qrDataUrl = await QRCode.toDataURL(qr, { margin: 1, width: 280 });
+        store.updateSession(tenantId, session.id, { qr, qrDataUrl, status: 'pending_qr' });
+      },
+      onOpen: () => store.updateSession(tenantId, session.id, { status: 'connected', qr: null, qrDataUrl: null }),
       onClose: (reason) => store.updateSession(tenantId, session.id, { status: reason }),
       onMessage: async ({ remoteJid, msg, sock }) => {
         const current = store.getSession(tenantId, session.id);
@@ -58,7 +62,20 @@ app.patch('/api/tenants/:tenantId/sessions/:sessionId/ai-mode', (req, res) => {
 });
 
 app.get('/api/tenants/:tenantId/groups', (req, res) => {
-  const tenant = store.ensureTenant(req.params.tenantId);
+  const { tenantId } = req.params;
+  const { sessionId } = req.query;
+
+  if (!sessionId) {
+    return res.status(400).json({ message: 'sessionId is required to fetch groups' });
+  }
+
+  const session = store.getSession(tenantId, sessionId);
+  if (!session) return res.status(404).json({ message: 'Session not found' });
+  if (session.status !== 'connected') {
+    return res.status(409).json({ message: 'WhatsApp is not connected yet' });
+  }
+
+  const tenant = store.ensureTenant(tenantId);
   const groups = tenant.groups.map((g) => ({
     id: g.id,
     name: g.name,

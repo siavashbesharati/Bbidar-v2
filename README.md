@@ -4,7 +4,7 @@ This repository provides a **multi-tenant starter architecture** for your WhatsA
 
 ## What is included
 - Multi-tenant session API (`tenantId` based).
-- QR-based session bootstrapping endpoint.
+- QR-based session bootstrapping endpoint with real QR image payload (`qrDataUrl`).
 - AI mode toggle per WhatsApp session.
 - Group listing endpoint.
 - Group-member CSV export endpoint.
@@ -34,4 +34,4 @@ Open `http://localhost:3000`.
 7. Add webhook/event delivery for audit and integrations.
 
 ## Important note
-The sample currently includes demo group data and a mock Gemini response formatter. The wiring is ready for real Gemini SDK integration where needed.
+The sample includes demo group data and a mock Gemini response formatter, but QR generation is real from Baileys `connection.update` events. The wiring is ready for real Gemini SDK integration where needed.
